@@ -87,9 +87,11 @@
     }
 
     updateWarp(dt) {
-      if ((SC.input.mouse.right || SC.input.keys[' '] || SC.input.just.warp) && this.warpCooldown <= 0) {
+      const wantsWarp = SC.input.mouse.right || SC.input.keys[' '] || SC.input.just.warp;
+      if (wantsWarp && this.warpCooldown <= 0) {
         this.warpTimer = 0.4;
         this.warpCooldown = 1.05;
+        SC.audio?.dash();
       }
 
       this.warpTimer = Math.max(0, this.warpTimer - dt);
@@ -105,6 +107,7 @@
       const muzzleY = this.y + Math.sin(this.angle) * (this.radius + 5);
       game.spawnBullet(muzzleX, muzzleY, this.angle);
       this.fireCooldown = 1 / this.fireRate;
+      SC.audio?.fire();
     }
   }
 
