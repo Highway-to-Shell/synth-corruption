@@ -5,7 +5,8 @@
 
   SC.effects = {
     burst(game, x, y, color, count = 16) {
-      const room = Math.max(0, 140 - game.particles.length);
+      const maxParticles = game.lowQuality ? 90 : 140;
+      const room = Math.max(0, maxParticles - game.particles.length);
       const total = Math.min(count, room);
       for (let i = 0; i < total; i++) {
         const angle = Math.random() * Math.PI * 2;
@@ -38,6 +39,7 @@
     postProcess(buffer, targetCtx, game) {
       const W = SC.W;
       const H = SC.H;
+      const low = !!game.lowQuality;
       const intensity = Math.min(1.4, 0.08 + (game.cores?.length || 0) * 0.08 + (game.player?.warping ? 0.28 : 0));
 
       targetCtx.save();
@@ -53,7 +55,7 @@
         targetCtx.globalCompositeOperation = 'source-over';
       }
 
-      const strips = 2 + Math.floor(intensity * 4);
+      const strips = low ? 2 : 2 + Math.floor(intensity * 4);
       for (let i = 0; i < strips; i++) {
         const y = Math.random() * H;
         const h = 2 + Math.random() * 12;
@@ -64,12 +66,13 @@
       targetCtx.globalAlpha = 1;
 
       targetCtx.fillStyle = 'rgba(0,0,0,.18)';
-      for (let y = 0; y < H; y += 4) {
+      for (let y = 0; y < H; y += (low ? 6 : 4)) {
         targetCtx.fillRect(0, y, W, 1);
       }
 
       targetCtx.globalAlpha = 0.08 + intensity * 0.04;
-      for (let i = 0; i < 26 + intensity * 30; i++) {
+      const noiseCount = low ? 16 : 26 + intensity * 30;
+      for (let i = 0; i < noiseCount; i++) {
         targetCtx.fillStyle = i % 2 ? 'rgba(255,255,255,.8)' : 'rgba(72,255,206,.8)';
         targetCtx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5);
       }

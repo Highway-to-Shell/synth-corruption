@@ -53,6 +53,8 @@
       this.enemyTimer = 1.2;
       this.coreTimer = 8;
       this.spawnLevel = 1;
+      this.slowFrames = 0;
+      this.lowQuality = false;
       this.triggers = triggerPlan.map(trigger => ({ ...trigger, done: false }));
       this.player.reset();
     }
@@ -76,18 +78,22 @@
     }
 
     spawnBullet(x, y, angle) {
+      if (this.bullets.length >= 96) this.bullets.shift();
       this.bullets.push(new SC.Bullet(x, y, angle));
     }
 
     spawnEnemyBullet(x, y, angle) {
+      if (this.enemyBullets.length >= 64) return;
       this.enemyBullets.push(new SC.EnemyBullet(x, y, angle));
     }
 
     spawnEnemy() {
+      if (this.enemies.length >= 38) return;
       this.enemies.push(SC.createEnemyAtEdge(this, this.spawnLevel));
     }
 
     spawnEnemyNear(x, y, level = this.spawnLevel, type = null) {
+      if (this.enemies.length >= 38) return;
       const angle = SC.rand(Math.PI * 2);
       const distance = SC.rand(88, 42);
       this.enemies.push(new SC.Enemy(
@@ -113,6 +119,10 @@
     }
 
     update(dt) {
+      if (dt > 0.045) this.slowFrames++;
+      else this.slowFrames = Math.max(0, this.slowFrames - 1);
+      this.lowQuality = this.slowFrames > 20;
+
       this.time += dt;
       if (this.bannerTimer > 0) this.bannerTimer -= dt;
 
@@ -159,6 +169,7 @@
       this.updateTriggers();
       this.updatePressure(worldDt);
       SC.effects.updateParticles(this, dt);
+      this.trimCollections();
       this.handleCollisions();
     }
 
@@ -220,6 +231,13 @@
         this.queueCore(this.wave >= 2 ? 'nest' : 'seed');
         this.coreTimer = Math.max(7.5, 13 - this.wave * 1.4);
       }
+    }
+
+    trimCollections() {
+      if (this.bullets.length > 96) this.bullets.splice(0, this.bullets.length - 96);
+      if (this.enemyBullets.length > 64) this.enemyBullets.splice(0, this.enemyBullets.length - 64);
+      if (this.enemies.length > 38) this.enemies.splice(0, this.enemies.length - 38);
+      if (this.particles.length > 140) this.particles.splice(0, this.particles.length - 140);
     }
 
     handleCollisions() {
