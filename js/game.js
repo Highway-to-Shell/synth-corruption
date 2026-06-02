@@ -36,8 +36,8 @@
       this.banner = '';
       this.bannerTimer = 0;
       this.bullets = [];
-      this.enemies = [];
       this.enemyBullets = [];
+      this.enemies = [];
       this.cores = [];
       this.spawns = [];
       this.corruption = new Map();
@@ -70,17 +70,22 @@
       this.bullets.push(new SC.Bullet(x, y, angle));
     }
 
+    spawnEnemyBullet(x, y, angle) {
+      this.enemyBullets.push(new SC.EnemyBullet(x, y, angle));
+    }
+
     spawnEnemy() {
       this.enemies.push(SC.createEnemyAtEdge(this, this.spawnLevel));
     }
 
-    spawnEnemyNear(x, y, level = this.spawnLevel) {
+    spawnEnemyNear(x, y, level = this.spawnLevel, type = null) {
       const angle = SC.rand(Math.PI * 2);
-      const distance = SC.rand(80, 36);
+      const distance = SC.rand(88, 42);
       const enemy = new SC.Enemy(
         SC.clamp(x + Math.cos(angle) * distance, 20, SC.W - 20),
         SC.clamp(y + Math.sin(angle) * distance, 20, SC.H - 20),
-        level
+        level,
+        type
       );
       this.enemies.push(enemy);
     }
@@ -138,6 +143,7 @@
 
       this.player.update(dt, this);
       this.updateBullets(dt);
+      this.updateEnemyBullets(worldDt);
       this.updateEnemies(worldDt);
       this.updateSpawns(worldDt);
       this.updateCores(worldDt);
@@ -149,6 +155,12 @@
     updateBullets(dt) {
       for (let i = this.bullets.length - 1; i >= 0; i--) {
         if (!this.bullets[i].update(dt)) this.bullets.splice(i, 1);
+      }
+    }
+
+    updateEnemyBullets(dt) {
+      for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
+        if (!this.enemyBullets[i].update(dt)) this.enemyBullets.splice(i, 1);
       }
     }
 
@@ -193,6 +205,13 @@
     handleCollisions() {
       for (const enemy of this.enemies) {
         if (Math.hypot(this.player.x - enemy.x, this.player.y - enemy.y) < this.player.radius + enemy.radius * 0.8) {
+          this.endRun();
+          return;
+        }
+      }
+
+      for (const shot of this.enemyBullets) {
+        if (Math.hypot(this.player.x - shot.x, this.player.y - shot.y) < this.player.radius + shot.radius) {
           this.endRun();
           return;
         }
