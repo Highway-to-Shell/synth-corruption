@@ -8,7 +8,9 @@
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
       this.time = 0;
-      this.state = 'splash';
+      this.states = new SC.StateMachine(SC.STATES.SPLASH);
+      this.score = 0;
+      this.highScore = 0;
     }
 
     update(dt) {
