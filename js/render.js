@@ -96,6 +96,18 @@
     }
   }
 
+  function drawParticles(ctx, particles) {
+    ctx.save();
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function drawCrosshair(ctx) {
     const input = SC.input;
     ctx.save();
@@ -113,6 +125,7 @@
 
   function drawWorld(ctx, game) {
     drawGrid(ctx, game.time);
+    drawParticles(ctx, game.particles);
     drawBullets(ctx, game.bullets);
     drawEnemies(ctx, game.enemies);
     drawPlayer(ctx, game.player);

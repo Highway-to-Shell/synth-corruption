@@ -10,18 +10,31 @@
       this.time = 0;
       this.states = new SC.StateMachine(SC.STATES.SPLASH);
       this.player = new SC.Player();
-      this.score = 0;
-      this.highScore = 0;
-      this.bullets = [];
-      this.enemies = [];
-      this.enemyTimer = 1.2;
-      this.spawnLevel = 1;
+      this.highScore = this.loadHighScore();
+      this.resetRun();
+    }
+
+    loadHighScore() {
+      try {
+        return Number(localStorage.getItem('synth-corruption-high-score') || 0);
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    saveHighScore() {
+      if (this.score <= this.highScore) return;
+      this.highScore = Math.floor(this.score);
+      try {
+        localStorage.setItem('synth-corruption-high-score', String(this.highScore));
+      } catch (_) {}
     }
 
     resetRun() {
       this.score = 0;
       this.bullets = [];
       this.enemies = [];
+      this.particles = [];
       this.enemyTimer = 1.2;
       this.spawnLevel = 1;
       this.player.reset();
@@ -34,8 +47,9 @@
 
     endRun() {
       if (!this.states.is(SC.STATES.PLAYING)) return;
-      this.highScore = Math.max(this.highScore, Math.floor(this.score));
+      this.saveHighScore();
       this.states.endGame();
+      SC.effects.burst(this, this.player.x, this.player.y, SC.colors.cyan, 42);
     }
 
     spawnBullet(x, y, angle) {
@@ -60,6 +74,7 @@
       }
 
       if (this.states.is(SC.STATES.GAMEOVER)) {
+        SC.effects.updateParticles(this, dt);
         if (SC.input.just.shoot || SC.input.just.start) this.startRun();
         SC.input.consumeFrame();
         return;
@@ -86,6 +101,7 @@
       this.updateBullets(dt);
       this.updateEnemies(worldDt);
       this.updateSpawns(worldDt);
+      SC.effects.updateParticles(this, dt);
       this.handleCollisions();
     }
 

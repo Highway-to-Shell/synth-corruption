@@ -33,12 +33,14 @@
     hit(game) {
       this.hp -= 1;
       this.flash = 1;
+      SC.effects.burst(game, this.x, this.y, this.color, 7);
       if (this.hp <= 0) this.kill(game);
     }
 
     kill(game) {
       this.dead = true;
       game.score += 50;
+      SC.effects.burst(game, this.x, this.y, this.color, 20);
     }
   }
 
