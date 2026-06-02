@@ -32,18 +32,78 @@
     ctx.restore();
   }
 
+  function drawCorruption(ctx, game) {
+    ctx.save();
+    ctx.fillStyle = SC.colors.redDim;
+    ctx.strokeStyle = 'rgba(255, 58, 79, 0.48)';
+    for (const cell of game.corruption.values()) {
+      const x = cell.cx * SC.GRID;
+      const y = cell.cy * SC.GRID;
+      ctx.fillRect(x, y, SC.GRID, SC.GRID);
+      ctx.strokeRect(x + 0.5, y + 0.5, SC.GRID - 1, SC.GRID - 1);
+    }
+    ctx.restore();
+  }
+
+  function drawSpawns(ctx, game) {
+    for (const spawn of game.spawns) {
+      const q = spawn.time / spawn.delay;
+      ctx.save();
+      ctx.translate(spawn.x, spawn.y);
+      ctx.rotate(game.time * 4);
+      ctx.globalAlpha = 0.25 + q * 0.75;
+      ctx.strokeStyle = SC.colors.red;
+      ctx.lineWidth = 2;
+      const size = 30 + q * 44;
+      ctx.strokeRect(-size / 2, -size / 2, size, size);
+      ctx.restore();
+    }
+  }
+
+  function drawCores(ctx, cores) {
+    for (const core of cores) {
+      ctx.save();
+      ctx.translate(core.x, core.y);
+      ctx.rotate(core.angle);
+      ctx.strokeStyle = core.flash > 0 ? SC.colors.white : core.def.color;
+      ctx.shadowColor = core.def.color;
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = core.flash > 0 ? 3 : 2;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = i * Math.PI / 3;
+        const x = Math.cos(a) * core.radius;
+        const y = Math.sin(a) * core.radius;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.rotate(-core.angle);
+      ctx.strokeStyle = SC.colors.white;
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(0, 0, core.radius + 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (core.hp / core.maxHp));
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   function drawSplash(ctx, game) {
     drawGrid(ctx, game.time);
     SC.drawText(ctx, 'SYNTH CORRUPTION', SC.W / 2, 210, 34, SC.colors.cyan);
     SC.drawText(ctx, 'SURVIVE THE BROKEN SIGNAL', SC.W / 2, 282, 13, SC.colors.magenta);
     SC.drawText(ctx, 'CLICK OR PRESS ENTER', SC.W / 2, 372, 13, SC.colors.yellow);
-    SC.drawText(ctx, 'WASD / ARROWS MOVE   MOUSE AIM   LEFT CLICK FIRE', SC.W / 2, 424, 10, SC.colors.white);
+    SC.drawText(ctx, 'DESTROY RED CORES BEFORE THE GRID IS CORRUPTED', SC.W / 2, 424, 9, SC.colors.white);
   }
 
   function drawHud(ctx, game) {
     SC.drawText(ctx, `SCORE ${Math.floor(game.score)}`, 24, 18, 12, SC.colors.cyan, 'left');
     SC.drawText(ctx, `BEST ${Math.floor(game.highScore)}`, SC.W - 24, 18, 12, SC.colors.magenta, 'right');
     SC.drawText(ctx, `LEVEL ${game.spawnLevel}`, SC.W / 2, 18, 12, SC.colors.white);
+    if (game.bannerTimer > 0) {
+      SC.drawText(ctx, game.banner, SC.W / 2, 548, 13, SC.colors.yellow);
+    }
   }
 
   function drawOverlay(ctx, title, subtitle, color) {
@@ -125,6 +185,9 @@
 
   function drawWorld(ctx, game) {
     drawGrid(ctx, game.time);
+    drawCorruption(ctx, game);
+    drawSpawns(ctx, game);
+    drawCores(ctx, game.cores);
     drawParticles(ctx, game.particles);
     drawBullets(ctx, game.bullets);
     drawEnemies(ctx, game.enemies);
