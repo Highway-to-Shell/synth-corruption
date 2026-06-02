@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('../fonts/PressStart2P-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
 html,
 body {
   width: 100%;
@@ -9,7 +17,7 @@ body {
   overflow: hidden;
   background: #000;
   color: #48ffce;
-  font-family: Consolas, Monaco, monospace;
+  font-family: 'Press Start 2P', Consolas, Monaco, monospace;
   user-select: none;
 }
 
@@ -20,7 +28,7 @@ body {
   place-items: center;
   background:
     radial-gradient(circle at center, rgba(72, 255, 206, 0.08), transparent 42%),
-    #020307;
+    linear-gradient(180deg, #040509 0%, #000 100%);
 }
 
 #game {
@@ -28,5 +36,6 @@ body {
   width: min(100vw, calc(100vh * 4 / 3));
   height: min(100vh, calc(100vw * 3 / 4));
   background: #040509;
+  cursor: crosshair;
 }
 
