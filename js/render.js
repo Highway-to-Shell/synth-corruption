@@ -36,7 +36,8 @@
     drawGrid(ctx, game.time);
     SC.drawText(ctx, 'SYNTH CORRUPTION', SC.W / 2, 210, 34, SC.colors.cyan);
     SC.drawText(ctx, 'SURVIVE THE BROKEN SIGNAL', SC.W / 2, 282, 13, SC.colors.magenta);
-    SC.drawText(ctx, 'PLAYER AND INPUT COME NEXT', SC.W / 2, 372, 11, SC.colors.yellow);
+    SC.drawText(ctx, 'CLICK OR PRESS ENTER', SC.W / 2, 372, 13, SC.colors.yellow);
+    SC.drawText(ctx, 'WASD / ARROWS MOVE   MOUSE AIM   LEFT CLICK FIRE', SC.W / 2, 424, 10, SC.colors.white);
   }
 
   function drawHud(ctx, game) {
@@ -53,6 +54,55 @@
     ctx.restore();
   }
 
+  function drawPlayer(ctx, player) {
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle + Math.PI / 2);
+    ctx.strokeStyle = SC.colors.cyan;
+    ctx.shadowColor = SC.colors.cyan;
+    ctx.shadowBlur = player.warping ? 18 : 10;
+    ctx.lineWidth = 2;
+    SC.drawPolygon(ctx, player.shape, player.radius);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBullets(ctx, bullets) {
+    ctx.save();
+    ctx.fillStyle = SC.colors.yellow;
+    ctx.shadowColor = SC.colors.yellow;
+    ctx.shadowBlur = 8;
+    for (const bullet of bullets) {
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCrosshair(ctx) {
+    const input = SC.input;
+    ctx.save();
+    ctx.translate(input.mouse.x, input.mouse.y);
+    ctx.strokeStyle = SC.colors.cyan;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-9, 0);
+    ctx.lineTo(9, 0);
+    ctx.moveTo(0, -9);
+    ctx.lineTo(0, 9);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWorld(ctx, game) {
+    drawGrid(ctx, game.time);
+    drawBullets(ctx, game.bullets);
+    drawPlayer(ctx, game.player);
+    drawHud(ctx, game);
+    drawCrosshair(ctx);
+  }
+
   SC.render = function render(game) {
     const ctx = game.ctx;
     clear(ctx);
@@ -62,8 +112,7 @@
       return;
     }
 
-    drawGrid(ctx, game.time);
-    drawHud(ctx, game);
+    drawWorld(ctx, game);
 
     if (game.states.is(SC.STATES.PAUSED)) {
       drawOverlay(ctx, 'PAUSED', 'PRESS ESC TO RESUME', SC.colors.yellow);
