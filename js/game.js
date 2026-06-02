@@ -3,6 +3,14 @@
 
   const SC = window.SC;
 
+  const triggerPlan = [
+    { score: 450, run: game => game.showBanner('DESTROY RED CORES', 1.6) },
+    { score: 950, run: game => game.queueCore('seed', 5, 4, 0.6) },
+    { score: 2100, run: game => { game.wave = 2; game.showBanner('WAVE 2', 1.5); game.queueCore('seed', 14, 10, 0.6); } },
+    { score: 3600, run: game => game.queueCore('nest', 10, 7, 0.6) },
+    { score: 5600, run: game => { game.wave = 3; game.showBanner('WAVE 3', 1.5); game.queueCore('nest', 4, 11, 0.6); } }
+  ];
+
   class Game {
     constructor(canvas) {
       this.canvas = canvas;
@@ -43,8 +51,9 @@
       this.corruption = new Map();
       this.particles = [];
       this.enemyTimer = 1.2;
-      this.coreTimer = 2.8;
+      this.coreTimer = 8;
       this.spawnLevel = 1;
+      this.triggers = triggerPlan.map(trigger => ({ ...trigger, done: false }));
       this.player.reset();
     }
 
@@ -56,7 +65,7 @@
     startRun() {
       this.resetRun();
       this.states.startGame();
-      this.showBanner('DESTROY RED CORES', 1.8);
+      this.showBanner('SURVIVE', 1.2);
     }
 
     endRun() {
@@ -81,16 +90,16 @@
     spawnEnemyNear(x, y, level = this.spawnLevel, type = null) {
       const angle = SC.rand(Math.PI * 2);
       const distance = SC.rand(88, 42);
-      const enemy = new SC.Enemy(
+      this.enemies.push(new SC.Enemy(
         SC.clamp(x + Math.cos(angle) * distance, 20, SC.W - 20),
         SC.clamp(y + Math.sin(angle) * distance, 20, SC.H - 20),
         level,
         type
-      );
-      this.enemies.push(enemy);
+      ));
     }
 
     queueCore(kind = 'seed', cx = null, cy = null, delay = 0.75) {
+      if (this.cores.length + this.spawns.length >= 3) return;
       const cellX = cx ?? SC.irand(SC.COLS - 3, 2);
       const cellY = cy ?? SC.irand(SC.ROWS - 3, 2);
       this.spawns.push(new SC.SpawnEffect(kind, cellX, cellY, delay));
@@ -147,9 +156,19 @@
       this.updateEnemies(worldDt);
       this.updateSpawns(worldDt);
       this.updateCores(worldDt);
+      this.updateTriggers();
       this.updatePressure(worldDt);
       SC.effects.updateParticles(this, dt);
       this.handleCollisions();
+    }
+
+    updateTriggers() {
+      for (const trigger of this.triggers) {
+        if (!trigger.done && this.score >= trigger.score) {
+          trigger.done = true;
+          trigger.run(this);
+        }
+      }
     }
 
     updateBullets(dt) {
@@ -190,15 +209,16 @@
 
     updatePressure(dt) {
       this.enemyTimer -= dt;
-      if (this.enemyTimer <= 0) {
+      if (this.enemyTimer <= 0 && this.enemies.length < 32) {
         this.spawnEnemy();
-        this.enemyTimer = Math.max(0.45, 1.25 - this.spawnLevel * 0.08);
+        this.enemyTimer = Math.max(0.42, 1.22 - this.wave * 0.12);
       }
 
+      if (this.score < 1800) return;
       this.coreTimer -= dt;
       if (this.coreTimer <= 0) {
-        this.queueCore(this.spawnLevel >= 3 ? 'nest' : 'seed');
-        this.coreTimer = Math.max(6, 10 - this.spawnLevel * 0.5);
+        this.queueCore(this.wave >= 2 ? 'nest' : 'seed');
+        this.coreTimer = Math.max(7.5, 13 - this.wave * 1.4);
       }
     }
 
