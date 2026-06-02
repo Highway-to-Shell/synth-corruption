@@ -126,15 +126,36 @@
   }
 
   function drawPlayer(ctx, player) {
+    for (const ghost of player.trail || []) {
+      const alpha = Math.max(0, ghost.life / ghost.maxLife);
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.34;
+      ctx.translate(ghost.x, ghost.y);
+      ctx.rotate(ghost.angle + Math.PI / 2);
+      ctx.strokeStyle = SC.colors.cyan;
+      ctx.shadowColor = SC.colors.cyan;
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = 2;
+      SC.drawPolygon(ctx, player.shape, player.radius);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle + Math.PI / 2);
     ctx.strokeStyle = SC.colors.cyan;
     ctx.shadowColor = SC.colors.cyan;
-    ctx.shadowBlur = player.warping ? 18 : 10;
+    ctx.shadowBlur = player.warping ? 20 : 10;
     ctx.lineWidth = 2;
     SC.drawPolygon(ctx, player.shape, player.radius);
     ctx.stroke();
+    if (player.warping) {
+      ctx.globalAlpha = 0.42;
+      ctx.scale(1.35, 1.35);
+      ctx.strokeStyle = SC.colors.white;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 

@@ -7,6 +7,7 @@
   SC.PLAYER_RADIUS = 15;
   SC.BULLET_SPEED = 520;
   SC.BULLET_RADIUS = 3;
+  SC.MAX_PLAYER_TRAIL = 14;
 
   SC.normalize = function normalize(x, y) {
     const len = Math.hypot(x, y);
@@ -26,15 +27,19 @@
       this.radius = SC.PLAYER_RADIUS;
       this.angle = 0;
       this.fireCooldown = 0;
-      this.fireRate = 9;
+      this.fireRate = 9.5;
       this.warpTimer = 0;
       this.warpCooldown = 0;
       this.warping = false;
+      this.trail = [];
+      this.lastTrailX = this.x;
+      this.lastTrailY = this.y;
     }
 
     update(dt, game) {
       this.updateAim();
-      this.updateMovement(dt);
+      this.updateMovement(dt, game);
+      this.updateTrail(dt);
       this.updateWarp(dt);
       this.updateShooting(dt, game);
     }
@@ -44,7 +49,7 @@
       this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
     }
 
-    updateMovement(dt) {
+    updateMovement(dt, game) {
       const keys = SC.input.keys;
       let x = 0;
       let y = 0;
@@ -55,16 +60,36 @@
       if (keys.s || keys.arrowdown) y += 1;
 
       const dir = SC.normalize(x, y);
-      const speed = SC.PLAYER_SPEED * (this.warping ? 1.45 : 1);
+      const onCorruption = game.isPlayerOnCorruption?.() || false;
+      const speed = SC.PLAYER_SPEED * (this.warping ? 1.45 : 1) * (onCorruption ? 0.62 : 1);
+      const oldX = this.x;
+      const oldY = this.y;
 
       this.x = SC.clamp(this.x + dir.x * speed * dt, this.radius, SC.W - this.radius);
       this.y = SC.clamp(this.y + dir.y * speed * dt, this.radius, SC.H - this.radius);
+
+      const moved = Math.hypot(this.x - oldX, this.y - oldY) > 0.01;
+      const spacing = this.warping ? 4 : 10;
+      if (moved && Math.hypot(this.x - this.lastTrailX, this.y - this.lastTrailY) >= spacing) {
+        const life = this.warping ? 0.34 : 0.22;
+        this.trail.push({ x: oldX, y: oldY, angle: this.angle, life, maxLife: life });
+        if (this.trail.length > SC.MAX_PLAYER_TRAIL) this.trail.shift();
+        this.lastTrailX = this.x;
+        this.lastTrailY = this.y;
+      }
+    }
+
+    updateTrail(dt) {
+      for (let i = this.trail.length - 1; i >= 0; i--) {
+        this.trail[i].life -= dt;
+        if (this.trail[i].life <= 0) this.trail.splice(i, 1);
+      }
     }
 
     updateWarp(dt) {
       if ((SC.input.mouse.right || SC.input.keys[' '] || SC.input.just.warp) && this.warpCooldown <= 0) {
-        this.warpTimer = 0.36;
-        this.warpCooldown = 0.95;
+        this.warpTimer = 0.4;
+        this.warpCooldown = 1.05;
       }
 
       this.warpTimer = Math.max(0, this.warpTimer - dt);
