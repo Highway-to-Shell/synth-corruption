@@ -2,6 +2,10 @@
   'use strict';
 
   const SC = window.SC;
+  const crtCanvas = document.createElement('canvas');
+  crtCanvas.width = SC.W;
+  crtCanvas.height = SC.H;
+  const crtCtx = crtCanvas.getContext('2d');
 
   SC.effects = {
     burst(game, x, y, color, count = 16) {
@@ -40,28 +44,58 @@
       const W = SC.W;
       const H = SC.H;
       const low = !!game.lowQuality;
-      const intensity = Math.min(1.4, 0.08 + (game.cores?.length || 0) * 0.08 + (game.player?.warping ? 0.28 : 0));
+      const inSplash = game.states?.is?.(SC.STATES.SPLASH);
+      const intensity = Math.min(
+        1.6,
+        (inSplash ? 0.34 : 0.14) +
+        (game.cores?.length || 0) * 0.12 +
+        (game.enemyBullets?.length || 0) * 0.006 +
+        (game.player?.warping ? 0.48 : 0)
+      );
 
       targetCtx.save();
       targetCtx.clearRect(0, 0, W, H);
-      targetCtx.drawImage(buffer, 0, 0);
+
+      crtCtx.save();
+      crtCtx.clearRect(0, 0, W, H);
+      crtCtx.imageSmoothingEnabled = true;
+      const strip = low ? 10 : 5;
+      for (let y = 0; y < H; y += strip) {
+        const ny = (y + strip / 2 - H / 2) / (H / 2);
+        const curve = ny * ny;
+        const scaleX = 1 - 0.13 * curve;
+        const scaleY = 1 + 0.032 * curve;
+        const dx = (W - W * scaleX) / 2 + Math.sin(game.time * 7 + y * 0.018) * intensity * 1.8;
+        const dy = H / 2 + (y - H / 2) * (1 + 0.045 * curve);
+        crtCtx.drawImage(buffer, 0, y, W, strip, dx, dy, W * scaleX, strip * scaleY + 0.8);
+      }
+      crtCtx.restore();
+
+      targetCtx.drawImage(crtCanvas, 0, 0);
 
       if (intensity > 0.05) {
         targetCtx.globalCompositeOperation = 'lighter';
-        targetCtx.globalAlpha = 0.08 + intensity * 0.05;
-        targetCtx.drawImage(buffer, -2 - intensity * 4, 0);
-        targetCtx.globalAlpha = 0.07 + intensity * 0.04;
-        targetCtx.drawImage(buffer, 2 + intensity * 3, 0);
+        targetCtx.globalAlpha = 0.11 + intensity * 0.07;
+        targetCtx.drawImage(crtCanvas, -3 - intensity * 6, 0);
+        targetCtx.globalAlpha = 0.10 + intensity * 0.06;
+        targetCtx.drawImage(crtCanvas, 3 + intensity * 5, 0);
         targetCtx.globalCompositeOperation = 'source-over';
       }
 
-      const strips = low ? 2 : 2 + Math.floor(intensity * 4);
+      const strips = low ? 3 : 5 + Math.floor(intensity * 8);
       for (let i = 0; i < strips; i++) {
         const y = Math.random() * H;
-        const h = 2 + Math.random() * 12;
-        const dx = (Math.random() - 0.5) * 34 * intensity;
-        targetCtx.globalAlpha = 0.18 + Math.random() * 0.18;
-        targetCtx.drawImage(buffer, 0, y, W, h, dx, y, W, h);
+        const h = 3 + Math.random() * 18;
+        const dx = (Math.random() - 0.5) * 70 * intensity;
+        targetCtx.globalAlpha = 0.20 + Math.random() * 0.26;
+        targetCtx.drawImage(crtCanvas, 0, y, W, h, dx, y, W, h);
+      }
+      targetCtx.globalAlpha = 1;
+
+      targetCtx.globalAlpha = 0.12 + intensity * 0.08;
+      targetCtx.fillStyle = 'rgba(72,255,206,.55)';
+      for (let y = Math.floor((game.time * 75) % 48); y < H; y += 96) {
+        targetCtx.fillRect(0, y, W, 1);
       }
       targetCtx.globalAlpha = 1;
 
@@ -70,11 +104,11 @@
         targetCtx.fillRect(0, y, W, 1);
       }
 
-      targetCtx.globalAlpha = 0.08 + intensity * 0.04;
-      const noiseCount = low ? 16 : 26 + intensity * 30;
+      targetCtx.globalAlpha = 0.10 + intensity * 0.08;
+      const noiseCount = low ? 18 : 36 + intensity * 50;
       for (let i = 0; i < noiseCount; i++) {
         targetCtx.fillStyle = i % 2 ? 'rgba(255,255,255,.8)' : 'rgba(72,255,206,.8)';
-        targetCtx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5);
+        targetCtx.fillRect(Math.random() * W, Math.random() * H, 1 + Math.random() * 2, 1 + Math.random() * 2);
       }
       targetCtx.globalAlpha = 1;
 
@@ -84,6 +118,15 @@
       vignette.addColorStop(1, 'rgba(0,0,0,.76)');
       targetCtx.fillStyle = vignette;
       targetCtx.fillRect(0, 0, W, H);
+
+      targetCtx.globalAlpha = 0.78;
+      targetCtx.strokeStyle = 'rgba(0,0,0,.9)';
+      targetCtx.lineWidth = 28;
+      targetCtx.beginPath();
+      if (targetCtx.roundRect) targetCtx.roundRect(8, 8, W - 16, H - 16, 40);
+      else targetCtx.rect(8, 8, W - 16, H - 16);
+      targetCtx.stroke();
+      targetCtx.globalAlpha = 1;
       targetCtx.restore();
     }
   };
