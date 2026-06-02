@@ -12,9 +12,13 @@
   ];
 
   class Game {
-    constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
+    constructor(visibleCanvas, bufferCanvas) {
+      this.canvas = visibleCanvas;
+      this.ctx = visibleCanvas.getContext('2d');
+      this.bufferCanvas = bufferCanvas || document.createElement('canvas');
+      this.bufferCanvas.width = SC.W;
+      this.bufferCanvas.height = SC.H;
+      this.bufferCtx = this.bufferCanvas.getContext('2d');
       this.time = 0;
       this.states = new SC.StateMachine(SC.STATES.SPLASH);
       this.player = new SC.Player();

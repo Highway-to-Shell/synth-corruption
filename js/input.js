@@ -26,7 +26,7 @@
   };
 
   function updatePointer(event) {
-    const canvas = document.getElementById('game');
+    const canvas = document.getElementById('c');
     const rect = canvas.getBoundingClientRect();
     input.mouse.x = SC.clamp((event.clientX - rect.left) * SC.W / rect.width, 0, SC.W);
     input.mouse.y = SC.clamp((event.clientY - rect.top) * SC.H / rect.height, 0, SC.H);

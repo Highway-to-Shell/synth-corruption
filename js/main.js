@@ -2,8 +2,9 @@
   'use strict';
 
   const SC = window.SC;
-  const canvas = document.getElementById('game');
-  const game = window.game = new SC.Game(canvas);
+  const visibleCanvas = document.getElementById('c');
+  const bufferCanvas = document.getElementById('g');
+  const game = window.game = new SC.Game(visibleCanvas, bufferCanvas);
 
   let lastTime = 0;
 

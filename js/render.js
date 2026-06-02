@@ -2,10 +2,6 @@
   'use strict';
 
   const SC = window.SC;
-  const bufferCanvas = document.createElement('canvas');
-  bufferCanvas.width = SC.W;
-  bufferCanvas.height = SC.H;
-  const bufferCtx = bufferCanvas.getContext('2d');
 
   function clear(ctx) {
     ctx.fillStyle = SC.colors.bg;
@@ -258,7 +254,7 @@
   }
 
   SC.render = function render(game) {
-    const ctx = bufferCtx;
+    const ctx = game.bufferCtx;
     clear(ctx);
 
     if (game.states.is(SC.STATES.SPLASH)) {
@@ -272,7 +268,7 @@
       }
     }
 
-    SC.effects.postProcess(bufferCanvas, game.ctx, game);
+    SC.effects.postProcess(game.bufferCanvas, game.ctx, game);
   };
 })();
 

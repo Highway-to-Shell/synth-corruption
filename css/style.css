@@ -31,7 +31,11 @@ body {
     linear-gradient(180deg, #040509 0%, #000 100%);
 }
 
-#game {
+#g {
+  display: none;
+}
+
+#c {
   display: block;
   width: min(100vw, calc(100vh * 4 / 3));
   height: min(100vh, calc(100vw * 3 / 4));
