@@ -22,8 +22,8 @@
     }
 
     reset() {
-      this.x = SC.W / 2;
-      this.y = SC.H / 2;
+      this.x = SC.WORLD_W / 2;
+      this.y = SC.WORLD_H / 2;
       this.radius = SC.PLAYER_RADIUS;
       this.angle = 0;
       this.fireCooldown = 0;
@@ -37,16 +37,17 @@
     }
 
     update(dt, game) {
-      this.updateAim();
+      this.updateAim(game);
       this.updateMovement(dt, game);
       this.updateTrail(dt);
       this.updateWarp(dt);
       this.updateShooting(dt, game);
     }
 
-    updateAim() {
+    updateAim(game) {
       const mouse = SC.input.mouse;
-      this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+      const camera = game.camera || { x: 0, y: 0 };
+      this.angle = Math.atan2(mouse.y - camera.y - this.y, mouse.x - camera.x - this.x);
     }
 
     updateMovement(dt, game) {
@@ -65,8 +66,8 @@
       const oldX = this.x;
       const oldY = this.y;
 
-      this.x = SC.clamp(this.x + dir.x * speed * dt, this.radius, SC.W - this.radius);
-      this.y = SC.clamp(this.y + dir.y * speed * dt, this.radius, SC.H - this.radius);
+      this.x = SC.clamp(this.x + dir.x * speed * dt, this.radius, SC.WORLD_W - this.radius);
+      this.y = SC.clamp(this.y + dir.y * speed * dt, this.radius, SC.WORLD_H - this.radius);
 
       const moved = Math.hypot(this.x - oldX, this.y - oldY) > 0.01;
       const spacing = this.warping ? 4 : 10;
@@ -126,7 +127,7 @@
       this.x += this.vx * dt;
       this.y += this.vy * dt;
       this.life -= dt;
-      return this.life > 0 && this.x > -20 && this.x < SC.W + 20 && this.y > -20 && this.y < SC.H + 20;
+      return this.life > 0 && this.x > -20 && this.x < SC.WORLD_W + 20 && this.y > -20 && this.y < SC.WORLD_H + 20;
     }
   }
 

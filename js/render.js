@@ -12,26 +12,34 @@
     ctx.fillRect(0, 0, SC.W, SC.H);
   }
 
-  function drawGrid(ctx, time) {
+  function drawGrid(ctx, time, world = false) {
+    const width = world ? SC.WORLD_W : SC.W;
+    const height = world ? SC.WORLD_H : SC.H;
+
     ctx.save();
+    if (world) {
+      ctx.fillStyle = 'rgba(7, 8, 12, 0.84)';
+      ctx.fillRect(0, 0, width, height);
+    }
+
     ctx.strokeStyle = SC.colors.grid;
     ctx.lineWidth = 1;
-    for (let x = 0; x <= SC.W; x += SC.GRID) {
+    for (let x = 0; x <= width; x += SC.GRID) {
       ctx.beginPath();
       ctx.moveTo(x + 0.5, 0);
-      ctx.lineTo(x + 0.5, SC.H);
+      ctx.lineTo(x + 0.5, height);
       ctx.stroke();
     }
-    for (let y = 0; y <= SC.H; y += SC.GRID) {
+    for (let y = 0; y <= height; y += SC.GRID) {
       ctx.beginPath();
       ctx.moveTo(0, y + 0.5);
-      ctx.lineTo(SC.W, y + 0.5);
+      ctx.lineTo(width, y + 0.5);
       ctx.stroke();
     }
     ctx.strokeStyle = SC.colors.gridStrong;
     ctx.beginPath();
-    ctx.moveTo(0, SC.H / 2 + Math.sin(time * 2) * 3);
-    ctx.lineTo(SC.W, SC.H / 2 + Math.sin(time * 2) * 3);
+    ctx.moveTo(0, height / 2 + Math.sin(time * 2) * 3);
+    ctx.lineTo(width, height / 2 + Math.sin(time * 2) * 3);
     ctx.stroke();
     ctx.restore();
   }
@@ -232,7 +240,9 @@
   }
 
   function drawWorld(ctx, game) {
-    drawGrid(ctx, game.time);
+    ctx.save();
+    ctx.translate(game.camera.x, game.camera.y);
+    drawGrid(ctx, game.time, true);
     drawCorruption(ctx, game);
     drawSpawns(ctx, game);
     drawCores(ctx, game);
@@ -241,6 +251,8 @@
     drawEnemyBullets(ctx, game.enemyBullets || []);
     drawEnemies(ctx, game.enemies);
     drawPlayer(ctx, game.player);
+    ctx.restore();
+
     drawHud(ctx, game);
     drawCrosshair(ctx);
   }

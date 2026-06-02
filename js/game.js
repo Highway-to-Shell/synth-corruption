@@ -50,6 +50,8 @@
       this.spawns = [];
       this.corruption = new Map();
       this.particles = [];
+      this.camera = { x: 0, y: 0 };
+      this.glitch = 0;
       this.enemyTimer = 1.2;
       this.coreTimer = 8;
       this.spawnLevel = 1;
@@ -57,11 +59,13 @@
       this.lowQuality = false;
       this.triggers = triggerPlan.map(trigger => ({ ...trigger, done: false }));
       this.player.reset();
+      this.snapCamera();
     }
 
     showBanner(text, seconds = 1.6) {
       this.banner = text;
       this.bannerTimer = seconds;
+      this.glitch = Math.max(this.glitch, 0.35);
     }
 
     startRun() {
@@ -74,6 +78,7 @@
       if (!this.states.is(SC.STATES.PLAYING)) return;
       this.saveHighScore();
       this.states.endGame();
+      this.glitch = Math.max(this.glitch, 1.1);
       SC.effects.burst(this, this.player.x, this.player.y, SC.colors.cyan, 42);
     }
 
@@ -97,8 +102,8 @@
       const angle = SC.rand(Math.PI * 2);
       const distance = SC.rand(88, 42);
       this.enemies.push(new SC.Enemy(
-        SC.clamp(x + Math.cos(angle) * distance, 20, SC.W - 20),
-        SC.clamp(y + Math.sin(angle) * distance, 20, SC.H - 20),
+        SC.clamp(x + Math.cos(angle) * distance, 20, SC.WORLD_W - 20),
+        SC.clamp(y + Math.sin(angle) * distance, 20, SC.WORLD_H - 20),
         level,
         type
       ));
@@ -109,6 +114,7 @@
       const cellX = cx ?? SC.irand(SC.COLS - 3, 2);
       const cellY = cy ?? SC.irand(SC.ROWS - 3, 2);
       this.spawns.push(new SC.SpawnEffect(kind, cellX, cellY, delay));
+      this.glitch = Math.max(this.glitch, 0.75);
       this.showBanner('CORE INCOMING', 1.2);
     }
 
@@ -124,6 +130,7 @@
       this.lowQuality = this.slowFrames > 20;
 
       this.time += dt;
+      this.glitch = Math.max(0, this.glitch - dt * 0.7);
       if (this.bannerTimer > 0) this.bannerTimer -= dt;
 
       if (SC.input.just.pause) {
@@ -171,6 +178,26 @@
       SC.effects.updateParticles(this, dt);
       this.trimCollections();
       this.handleCollisions();
+      this.updateCamera();
+    }
+
+    snapCamera() {
+      const target = this.cameraTarget();
+      this.camera.x = target.x;
+      this.camera.y = target.y;
+    }
+
+    cameraTarget() {
+      return {
+        x: SC.WORLD_W <= SC.W ? (SC.W - SC.WORLD_W) / 2 : SC.clamp(SC.W / 2 - this.player.x, SC.W - SC.WORLD_W, 0),
+        y: SC.WORLD_H <= SC.H ? (SC.H - SC.WORLD_H) / 2 : SC.clamp(SC.H / 2 - this.player.y, SC.H - SC.WORLD_H, 0)
+      };
+    }
+
+    updateCamera() {
+      const target = this.cameraTarget();
+      this.camera.x += (target.x - this.camera.x) * 0.18;
+      this.camera.y += (target.y - this.camera.y) * 0.18;
     }
 
     updateTriggers() {

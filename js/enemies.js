@@ -101,7 +101,7 @@
       this.x += this.vx * dt;
       this.y += this.vy * dt;
       this.life -= dt;
-      return this.life > 0 && this.x > -40 && this.x < SC.W + 40 && this.y > -40 && this.y < SC.H + 40;
+      return this.life > 0 && this.x > -40 && this.x < SC.WORLD_W + 40 && this.y > -40 && this.y < SC.WORLD_H + 40;
     }
   }
 
@@ -114,21 +114,26 @@
 
   SC.createEnemyAtEdge = function createEnemyAtEdge(game, level = 1, type = null) {
     const side = Math.floor(Math.random() * 4);
+    const camera = game.camera || { x: 0, y: 0 };
+    const viewLeft = -camera.x;
+    const viewTop = -camera.y;
+    const viewRight = viewLeft + SC.W;
+    const viewBottom = viewTop + SC.H;
     let x = 0;
     let y = 0;
 
     if (side === 0) {
-      x = Math.random() * SC.W;
-      y = -32;
+      x = SC.clamp(viewLeft + Math.random() * SC.W, 20, SC.WORLD_W - 20);
+      y = SC.clamp(viewTop - 32, -32, SC.WORLD_H + 32);
     } else if (side === 1) {
-      x = SC.W + 32;
-      y = Math.random() * SC.H;
+      x = SC.clamp(viewRight + 32, -32, SC.WORLD_W + 32);
+      y = SC.clamp(viewTop + Math.random() * SC.H, 20, SC.WORLD_H - 20);
     } else if (side === 2) {
-      x = Math.random() * SC.W;
-      y = SC.H + 32;
+      x = SC.clamp(viewLeft + Math.random() * SC.W, 20, SC.WORLD_W - 20);
+      y = SC.clamp(viewBottom + 32, -32, SC.WORLD_H + 32);
     } else {
-      x = -32;
-      y = Math.random() * SC.H;
+      x = SC.clamp(viewLeft - 32, -32, SC.WORLD_W + 32);
+      y = SC.clamp(viewTop + Math.random() * SC.H, 20, SC.WORLD_H - 20);
     }
 
     return new Enemy(x, y, level, type || pickType(level));

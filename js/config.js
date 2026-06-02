@@ -6,8 +6,10 @@
   SC.W = 800;
   SC.H = 600;
   SC.GRID = 40;
-  SC.COLS = Math.floor(SC.W / SC.GRID);
-  SC.ROWS = Math.floor(SC.H / SC.GRID);
+  SC.COLS = 30;
+  SC.ROWS = 22;
+  SC.WORLD_W = SC.COLS * SC.GRID;
+  SC.WORLD_H = SC.ROWS * SC.GRID;
 
   SC.colors = {
     bg: '#040509',
