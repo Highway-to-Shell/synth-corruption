@@ -101,7 +101,7 @@
     drawGrid(ctx, game.time);
     SC.drawText(ctx, 'SYNTH CORRUPTION', SC.W / 2, 205, 34, SC.colors.cyan);
     SC.drawText(ctx, 'DESTROY RED CORES', SC.W / 2, 278, 14, SC.colors.red);
-    SC.drawText(ctx, 'CORRUPTED CELLS WILL SLOW YOU DOWN', SC.W / 2, 328, 10, SC.colors.yellow);
+    SC.drawText(ctx, 'DODGE ENEMIES AND HOSTILE PROJECTILES', SC.W / 2, 328, 10, SC.colors.yellow);
     SC.drawText(ctx, 'CLICK OR PRESS ENTER', SC.W / 2, 395, 13, SC.colors.white);
   }
 
@@ -172,6 +172,19 @@
     ctx.restore();
   }
 
+  function drawEnemyBullets(ctx, bullets) {
+    ctx.save();
+    ctx.fillStyle = SC.colors.red;
+    ctx.shadowColor = SC.colors.red;
+    ctx.shadowBlur = 10;
+    for (const bullet of bullets) {
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   function drawEnemies(ctx, enemies) {
     for (const enemy of enemies) {
       ctx.save();
@@ -221,6 +234,7 @@
     drawCores(ctx, game);
     drawParticles(ctx, game.particles);
     drawBullets(ctx, game.bullets);
+    drawEnemyBullets(ctx, game.enemyBullets || []);
     drawEnemies(ctx, game.enemies);
     drawPlayer(ctx, game.player);
     drawHud(ctx, game);
