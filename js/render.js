@@ -43,6 +43,7 @@
   function drawHud(ctx, game) {
     SC.drawText(ctx, `SCORE ${Math.floor(game.score)}`, 24, 18, 12, SC.colors.cyan, 'left');
     SC.drawText(ctx, `BEST ${Math.floor(game.highScore)}`, SC.W - 24, 18, 12, SC.colors.magenta, 'right');
+    SC.drawText(ctx, `LEVEL ${game.spawnLevel}`, SC.W / 2, 18, 12, SC.colors.white);
   }
 
   function drawOverlay(ctx, title, subtitle, color) {
@@ -80,6 +81,21 @@
     ctx.restore();
   }
 
+  function drawEnemies(ctx, enemies) {
+    for (const enemy of enemies) {
+      ctx.save();
+      ctx.translate(enemy.x, enemy.y);
+      ctx.rotate(enemy.angle);
+      ctx.strokeStyle = enemy.flash > 0 ? SC.colors.white : enemy.color;
+      ctx.shadowColor = enemy.color;
+      ctx.shadowBlur = enemy.flash > 0 ? 16 : 8;
+      ctx.lineWidth = enemy.flash > 0 ? 3 : 2;
+      SC.drawPolygon(ctx, enemy.shape, enemy.radius);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   function drawCrosshair(ctx) {
     const input = SC.input;
     ctx.save();
@@ -98,6 +114,7 @@
   function drawWorld(ctx, game) {
     drawGrid(ctx, game.time);
     drawBullets(ctx, game.bullets);
+    drawEnemies(ctx, game.enemies);
     drawPlayer(ctx, game.player);
     drawHud(ctx, game);
     drawCrosshair(ctx);
